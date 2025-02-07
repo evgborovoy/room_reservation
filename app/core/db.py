@@ -1,4 +1,3 @@
-from sqlalchemy import Column, Integer
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, declared_attr, DeclarativeBase
 
@@ -11,3 +10,6 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 class Base(DeclarativeBase):
     pass
 
+async def get_async_session():
+    async with AsyncSessionLocal() as session:
+        yield session
