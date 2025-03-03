@@ -1,10 +1,9 @@
-from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class MeetingRoomBase(BaseModel):
-    name: Optional[str] = Field(min_length=1, max_length=100)
-    description: Optional[str] = None
+    name: None | str = Field(None, min_length=1, max_length=100)
+    description: None | str = None
 
 
 class MeetingRoomCreate(MeetingRoomBase):
@@ -14,9 +13,17 @@ class MeetingRoomCreate(MeetingRoomBase):
 class MeetingRoomDB(MeetingRoomBase):
     id: int
 
+    # for using ORM-model in schema
     class Config:
         from_attributes = True
 
 
 class MeetingRoomUpdate(MeetingRoomBase):
-    pass
+
+    @field_validator("name")
+    @classmethod
+    def name_cannot_be_null(cls, value):
+        if value is None:
+            raise ValueError("name cannot be empty (null or None)")
+        return value
+
