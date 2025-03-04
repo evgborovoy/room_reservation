@@ -27,10 +27,18 @@ async def get_all_reservations(session: AsyncSession = Depends(get_async_session
     return reservations
 
 
+@router.get("/my_reservations", response_model=list[ReservationDB], response_model_exclude={"user_id"})
+async def get_my_reservations(user: User = Depends(current_user), session: AsyncSession = Depends(get_async_session)):
+    """Get all reservations for current user"""
+    reservations = await reservation_crud.get_by_user(user, session)
+    return reservations
+
+
 @router.patch("/{reservation_id}", response_model=ReservationDB)
 async def update_reservation(reservation_id: int, obj_in: ReservationUpdate,
-                             session: AsyncSession = Depends(get_async_session)):
-    reservation = await check_reservation_before_edit(reservation_id, session)
+                             session: AsyncSession = Depends(get_async_session), user: User = Depends(current_user)):
+    """For superuser or user who create reservation"""
+    reservation = await check_reservation_before_edit(reservation_id, session, user)
     await check_reservation_intersections(**obj_in.model_dump(), reservation_id=reservation_id,
                                           meeting_room_id=reservation.meeting_room_id, session=session)
     reservation = await reservation_crud.update(db_obj=reservation, obj_in=obj_in, session=session)
@@ -38,7 +46,9 @@ async def update_reservation(reservation_id: int, obj_in: ReservationUpdate,
 
 
 @router.delete("/{reservation_id}", response_model=ReservationDB)
-async def delete_reservation(reservation_id: int, session: AsyncSession = Depends(get_async_session)):
-    reservation = await check_reservation_before_edit(reservation_id, session)
+async def delete_reservation(reservation_id: int, session: AsyncSession = Depends(get_async_session),
+                             user: User = Depends(current_user)):
+    """For superuser or user who create reservation"""
+    reservation = await check_reservation_before_edit(reservation_id, session, user)
     reservation = await reservation_crud.remove(reservation, session)
     return reservation

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.meeting_room import meeting_room_crud
 from app.crud.reservation import reservation_crud
-from app.models import MeetingRoom, Reservation
+from app.models import MeetingRoom, Reservation, User
 
 
 async def check_meeting_room_exists(meeting_room_id: int, session: AsyncSession) -> MeetingRoom:
@@ -25,9 +25,11 @@ async def check_reservation_intersections(**kwargs) -> None:
        raise HTTPException(status_code=422, detail=f"intersections time with: {reservations}")
 
 
-async def check_reservation_before_edit(reservation_id: int, session: AsyncSession) -> Reservation:
+async def check_reservation_before_edit(reservation_id: int, session: AsyncSession, user: User) -> Reservation:
     reservation = await reservation_crud.get(reservation_id, session)
     if not reservation:
         raise HTTPException(404, "Reservation not found")
+    if reservation.user_id != user.id and not user.is_superuser:
+        raise HTTPException(403, "It is impossible to edit or delete not yours reservation!")
     return reservation
 
