@@ -9,6 +9,7 @@ class Reservation(Base):
     from_reserve = Column(DateTime)
     to_reserve = Column(DateTime)
     meeting_room_id = Column(Integer, ForeignKey("meeting_room.id"))
+    user_id = Column(Integer, ForeignKey("user.id"))
 
     def __repr__(self):
         return f"Room #{self.meeting_room_id} reserved from {self.from_reserve} to {self.to_reserve}"

@@ -16,6 +16,7 @@ class ReservationBase(BaseModel):
 class ReservationDB(ReservationBase):
     id: int
     meeting_room_id: int
+    user_id: int | None = None
 
     # for using ORM-model in schema
     class Config:
